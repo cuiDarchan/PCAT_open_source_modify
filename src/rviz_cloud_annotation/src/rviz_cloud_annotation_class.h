@@ -67,6 +67,20 @@
 #define LABEL_POINT_MARKER_PREFIX "label_points_"
 #define BBOX_MARKER_NAME "BBOX"
 
+struct PointXYZIRT {
+  PCL_ADD_POINT4D
+  uint8_t intensity;
+  uint8_t ring;
+  double timestamp;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // make sure our new allocators are aligned
+} EIGEN_ALIGN16;
+
+POINT_CLOUD_REGISTER_POINT_STRUCT(
+    PointXYZIRT,
+    (float, x, x)(float, y, y)(float, z, z)(uint8_t, intensity, intensity)(
+        uint8_t, ring, ring)(double, timestamp, timestamp))
+
+
 class RVizCloudAnnotation //点云标注Main类
 {
 public:
@@ -95,6 +109,10 @@ public:
   
   typedef pcl::PointXYZRGBL PointXYZRGBL;
   typedef pcl::PointCloud<PointXYZRGBL> PointXYZRGBLCloud;
+  
+  typedef PointXYZIRT Point;
+  typedef pcl::PointCloud<Point> PointCloud;
+  typedef pcl::PointCloud<Point>::Ptr PointCloudPtr;
 
   typedef pcl::KdTreeFLANN<PointXYZRGBNormal> KdTree;
 

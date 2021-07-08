@@ -633,6 +633,17 @@ void RVizCloudAnnotation::LoadCloud(const std::string &filename,
     PointXYZCloud cloud_in;
     pcl::fromPCLPointCloud2(cloud2, cloud_in); // input pointCloud as XYZ
     pcl::copyPointCloud(cloud_in, cloud); // Transform to XYZRGBNormal finally
+  } else if (pcd_type == "mdc"){
+    PointCloud cloud_in; // mdc PointXYZIRT
+    pcl::fromPCLPointCloud2(cloud2, cloud_in);
+    for (int64 i = 0; i < cloud_in.size(); i++) {
+      PointXYZRGBNormal p;
+      p.x = cloud_in[i].x;
+      p.y = cloud_in[i].y;
+      p.z = cloud_in[i].z;
+      p.r = cloud_in[i].intensity;
+      cloud.push_back(p);
+    }
   }
 
   ROS_INFO("rviz_cloud_annotation: cloud size: %ld", cloud.size());
@@ -909,8 +920,10 @@ void RVizCloudAnnotation::Save(const bool is_autosave) {
     for (int i = 0; i < cloud_out1.size(); i++) {
       std::string m_str_ = label2Name(m_label[i]);
 
-      ofile1 << i << "\t" << cloud_out1[i].x << "\t" << cloud_out1[i].y << "\t"
-             << cloud_out1[i].z << "\t" << m_str_ << "\n";
+      // ofile1 << i << "\t" << cloud_out1[i].x << "\t" << cloud_out1[i].y << "\t"
+      //        << cloud_out1[i].z << "\t" <<  m_str_ << "\n";
+      ofile1 << i << " " << cloud_out1[i].x << " " << cloud_out1[i].y << " "
+             << cloud_out1[i].z << " " << static_cast<int32_t>(cloud_out1[i].r) << " " <<  m_str_ << "\n";
     }
     ofile1.close();
     m_label.clear();
@@ -944,12 +957,14 @@ void RVizCloudAnnotation::Save(const bool is_autosave) {
 
 //点的 标签序号 --> Name
 std::string RVizCloudAnnotation::label2Name(int label) {
-  std::string m_str_ = "No";
+  // std::string m_str_ = "No";
+  std::string m_str_ = "0";
   if (label > 1000) {
     return m_str_;
   }
   if (label == -1) {
-    m_str_ = "Kerb";
+    // m_str_ = "Kerb";
+    m_str_ = "1";
     return m_str_;
   } else if (label == -2) {
     m_str_ = "Lane";
@@ -2609,7 +2624,7 @@ void RVizCloudAnnotation::FinalLabel(PointXYZRGBNormalCloud &cloud) {
     int64_t label = 2000;
 
     if (ids_in_plane_flag[i] == -3) {
-      label = -3;
+      label = -1;
     }
 
     // if in line
