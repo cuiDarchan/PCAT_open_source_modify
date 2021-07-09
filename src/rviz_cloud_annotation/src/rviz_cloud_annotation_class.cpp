@@ -911,9 +911,19 @@ void RVizCloudAnnotation::Save(const bool is_autosave) {
     PointXYZRGBLCloud cloud_out1;
     pcl::copyPointCloud(*m_cloud, cloud_out1);
     std::string save_label_name = m_label_files[FILE_ID];
+    // 分割字符串,得到.txt 前面的字符串
+    const char *split = ".";
+    char *local_label_name = new char[strlen(save_label_name.c_str()) + 1];
+    strcpy(local_label_name, save_label_name.c_str());
+    char *p;
+    p = strtok(local_label_name, split);
+    std::string bin_file_name = p;
+    // std::cout << "bin_file_name :" << bin_file_name << std::endl;
 
-    std::ofstream ofile1;
-    ofile1.open(save_label_name.c_str(), std::ios::trunc);
+    std::ofstream ofile1, ofile_bin ,ofile_label;
+    // ofile1.open(save_label_name.c_str(), std::ios::trunc);
+    ofile_bin.open((bin_file_name + ".bin").c_str(), std::ios::binary);
+    ofile_label.open(save_label_name.c_str(), std::ios::out);
 
     ROS_INFO("rviz_cloud_annotation: filename: %s", save_label_name.c_str());
 
@@ -922,10 +932,19 @@ void RVizCloudAnnotation::Save(const bool is_autosave) {
 
       // ofile1 << i << "\t" << cloud_out1[i].x << "\t" << cloud_out1[i].y << "\t"
       //        << cloud_out1[i].z << "\t" <<  m_str_ << "\n";
-      ofile1 << i << " " << cloud_out1[i].x << " " << cloud_out1[i].y << " "
-             << cloud_out1[i].z << " " << static_cast<int32_t>(cloud_out1[i].r) << " " <<  m_str_ << "\n";
+      // ofile1 << i << " " << cloud_out1[i].x << " " << cloud_out1[i].y << " "
+      //        << cloud_out1[i].z << " " << static_cast<int32_t>(cloud_out1[i].r) << " " <<  m_str_ << "\n";
+      ofile_bin.write((const char *)&cloud_out1[i].x, sizeof(cloud_out1[i].x));
+      ofile_bin.write((const char *)&cloud_out1[i].y, sizeof(cloud_out1[i].y));
+      ofile_bin.write((const char *)&cloud_out1[i].z, sizeof(cloud_out1[i].z));
+      float intensity = static_cast<float>(cloud_out1[i].r);
+      std::cout << "------------intensity:" << intensity << std::endl;
+      ofile_bin.write((const char *)&intensity, sizeof(intensity));
+      ofile_label << m_str_ << "\n";
     }
-    ofile1.close();
+    // ofile1.close();
+    ofile_label.close();
+    ofile_bin.close();
     m_label.clear();
   }
 
